@@ -1,9 +1,9 @@
 import logging, os
-
 logging.disable(logging.WARNING)
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 import os
+import random
 import tensorflow as tf
 from tensorflow.keras.layers import (
     Dense,
@@ -17,12 +17,17 @@ from tensorflow.keras.layers import (
 from tensorflow.keras.metrics import Recall, Precision
 import numpy as np
 import config
-from Utils.preprocess.preprocess import prep_TEXT
+
+from algorithm.preprocess.preprocess import prep_TEXT
 
 MODEL_NAME = config.MODEL_NAME
 MODEL_SAVE_PATH = config.MODEL_SAVE_PATH
-seed = config.RAND_SEED
-tf.random.set_seed(seed)
+
+seed_value = config.RAND_SEED
+os.environ['PYTHONHASHSEED']=str(seed_value)
+random.seed(seed_value)
+np.random.seed(seed_value)
+tf.random.set_seed(seed_value)
 
 
 class RNN_pretrained_embed:
@@ -43,7 +48,7 @@ class RNN_pretrained_embed:
 
         max_length = len(
             tf.squeeze(text_vectorizer(["dsads"]))
-        )  # We defined output lenght during preprocessing, now getting it for embedding layer
+        )  # We defined output length during preprocessing, now getting it for embedding layer
 
         embed_layer = Embedding(
             input_dim=max_vocab_length,  # set input shape
@@ -90,7 +95,6 @@ class RNN_pretrained_embed:
         y_train,
         x_val=None,
         y_val=None,
-        call_backs=[],
         epochs=10,
         num_layers=1,
         neurons_num=50,
@@ -111,19 +115,28 @@ class RNN_pretrained_embed:
             y_train = tf.squeeze(tf.one_hot(y_train, num_classes))
             if not y_val is None:
                 y_val = tf.squeeze(tf.one_hot(y_val, num_classes))
+        
+        
+        callbacks = [] # we add desired call backs in a list # If no callback is desired, leave list empty
+        # Kindly change patience as you see fit in your project
+        callbacks.append(
+            tf.keras.callbacks.EarlyStopping(
+                monitor="loss" if x_val is None else "val_loss",
+                patience=2,
+                verbose=1,
+                restore_best_weights=True
+                )
+            ) 
 
-        if x_val is None:
-            self.model.fit(x_train, y_train, epochs=epochs, callbacks=call_backs)
-        else:
-
-            self.model.fit(
-                x_train,
-                y_train,
-                epochs=epochs,
-                validation_data=(x_val, y_val),
-                validation_steps=len(x_val),
-                callbacks=call_backs,
-            )
+        self.model.fit(
+            x_train,
+            y_train,
+            epochs=epochs,
+            validation_data=None if x_val is None else (x_val, y_val),
+            validation_steps=None if x_val is None else len(x_val),
+            callbacks=callbacks,
+            verbose=1
+        )
 
         return self.model
 

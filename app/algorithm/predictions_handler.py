@@ -4,10 +4,12 @@ import tensorflow as tf
 import os
 import config
 import pandas as pd
-from Utils.model_builder import load_model
-from Utils.preprocess.preprocess import preprocess_data
 import logging
-import os
+import json
+
+
+from algorithm.model_builder import load_model
+from algorithm.preprocess.preprocess import preprocess_data
 
 logging.disable(logging.WARNING)
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -117,7 +119,7 @@ class Predictor:
                 if k not in [id_col_name, "__label"]
             }
             predictions_response.append(pred_obj)
-
+        predictions_response = json.dumps({"predictions": predictions_response})
         return predictions_response
 
     def conv_labels_no_probability(self, preds):

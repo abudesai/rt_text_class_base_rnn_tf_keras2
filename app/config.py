@@ -1,6 +1,7 @@
 import os
-from Utils.utlis import read_json_file
 import glob
+
+from algorithm.utils import read_json_file
 
 
 def check_dir(dir_path):
@@ -9,7 +10,6 @@ def check_dir(dir_path):
 
 
 prefix = os.path.join(os.pardir, 'ml_vol')
-#prefix = os.path.join('opt','ml_vol')
 
 
 RAND_SEED = 42
@@ -52,7 +52,6 @@ MODEL_SAVE_PATH = os.path.join(prefix, 'model', 'artifacts')
 check_dir(MODEL_SAVE_PATH)
 
 
-# os.path.join("Utils","preprocess","artifacts")
 PREPROCESS_ARTIFACT_PATH = MODEL_SAVE_PATH
 check_dir(PREPROCESS_ARTIFACT_PATH)
 
